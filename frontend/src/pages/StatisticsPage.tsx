@@ -1,4 +1,6 @@
+import { useState } from 'react';
 import type { CalculateResponse } from '../types';
+import UserStatsPanel from '../components/UserStatsPanel';
 
 interface Props {
   response: CalculateResponse;
@@ -25,9 +27,13 @@ export default function StatisticsPage({ response, onBack, onReset }: Props) {
     totalFrontendHours, totalBackendHours, totalTestHours } = response;
 
   const teams = ['Frontend', 'Backend', 'Test'];
+  const [selectedUser, setSelectedUser] = useState<string | null>(null);
 
   return (
     <div className="page">
+      {selectedUser && (
+        <UserStatsPanel name={selectedUser} onClose={() => setSelectedUser(null)} />
+      )}
       <div className="page-header">
         <button className="btn-secondary" onClick={onBack}>← Back</button>
         <h1>📊 Statistics</h1>
@@ -98,7 +104,11 @@ export default function StatisticsPage({ response, onBack, onReset }: Props) {
                 <tbody>
                   {members.map(m => (
                     <tr key={m.name}>
-                      <td>{m.name}</td>
+                      <td>
+                        <button className="member-btn" onClick={() => setSelectedUser(m.name)}>
+                          {m.name}
+                        </button>
+                      </td>
                       <td>{m.totalHours}h</td>
                       <td>{m.storyCount}</td>
                     </tr>

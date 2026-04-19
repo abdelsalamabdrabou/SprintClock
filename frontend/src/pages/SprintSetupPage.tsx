@@ -1,12 +1,33 @@
 import { useState } from 'react';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
 import type { SprintConfigDto, TeamMembers } from '../types';
+
+/** Format a Date to local-time ISO string "YYYY-MM-DDTHH:mm" (no UTC shift). */
+function toLocalISO(d: Date): string {
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+/** Parse "HH:mm" string into a Date (today's date, just for the time picker). */
+function parseTime(t: string): Date {
+  const [h, m] = t.split(':').map(Number);
+  const d = new Date();
+  d.setHours(h, m, 0, 0);
+  return d;
+}
+
+/** Store time back as "HH:mm" (24h) for the API, display in 12h. */
+function formatTime(d: Date): string {
+  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+}
 
 interface Props {
   onNext: (config: SprintConfigDto, teams: TeamMembers) => void;
 }
 
 const defaultConfig: SprintConfigDto = {
-  startDateTime: new Date().toISOString().slice(0, 16),
+  startDateTime: toLocalISO(new Date()),
   maxDailyHours: 8,
   workFrom: '09:00',
   workUntil: '17:00',
@@ -40,7 +61,7 @@ export default function SprintSetupPage({ onNext }: Props) {
   const validate = (): string[] => {
     const errs: string[] = [];
     const start = new Date(config.startDateTime);
-    const day = start.getDay(); // 0=Sun, 5=Fri, 6=Sat
+    const day = start.getDay();
     if (day === 5 || day === 6) errs.push('Sprint cannot start on a weekend (Friday or Saturday).');
 
     const [fh, fm] = config.workFrom.split(':').map(Number);
@@ -77,29 +98,67 @@ export default function SprintSetupPage({ onNext }: Props) {
 
       <section className="card">
         <h2>Sprint Configuration</h2>
+
         <div className="field">
-          <label>Sprint Start Date & Time</label>
-          <input
-            type="datetime-local"
-            value={config.startDateTime}
-            onChange={e => setConfig(c => ({ ...c, startDateTime: e.target.value }))}
+          <label>Sprint Start Date &amp; Time</label>
+          <DatePicker
+            selected={config.startDateTime ? new Date(config.startDateTime) : null}
+            onChange={(date: Date | null) =>
+              date && setConfig(c => ({ ...c, startDateTime: toLocalISO(date) }))
+            }
+            showTimeSelect
+            timeIntervals={15}
+            timeCaption="Time"
+            dateFormat="MMM dd, yyyy  h:mm aa"
+            timeFormat="h:mm aa"
+            placeholderText="Select date & time"
+            popperPlacement="bottom-start"
           />
         </div>
+
         <div className="field-row">
           <div className="field">
             <label>Work From</label>
-            <input type="time" value={config.workFrom}
-              onChange={e => setConfig(c => ({ ...c, workFrom: e.target.value }))} />
+            <DatePicker
+              selected={parseTime(config.workFrom)}
+              onChange={(date: Date | null) =>
+                date && setConfig(c => ({ ...c, workFrom: formatTime(date) }))
+              }
+              showTimeSelect
+              showTimeSelectOnly
+              timeIntervals={15}
+              timeCaption="From"
+              dateFormat="h:mm aa"
+              timeFormat="h:mm aa"
+              popperPlacement="bottom-start"
+            />
           </div>
           <div className="field">
             <label>Work Until</label>
-            <input type="time" value={config.workUntil}
-              onChange={e => setConfig(c => ({ ...c, workUntil: e.target.value }))} />
+            <DatePicker
+              selected={parseTime(config.workUntil)}
+              onChange={(date: Date | null) =>
+                date && setConfig(c => ({ ...c, workUntil: formatTime(date) }))
+              }
+              showTimeSelect
+              showTimeSelectOnly
+              timeIntervals={15}
+              timeCaption="Until"
+              dateFormat="h:mm aa"
+              timeFormat="h:mm aa"
+              popperPlacement="bottom-start"
+            />
           </div>
           <div className="field">
             <label>Max Daily Hours</label>
-            <input type="number" min={1} max={24} step={0.5} value={config.maxDailyHours}
-              onChange={e => setConfig(c => ({ ...c, maxDailyHours: parseFloat(e.target.value) }))} />
+            <input
+              type="number"
+              min={1}
+              max={24}
+              step={0.5}
+              value={config.maxDailyHours}
+              onChange={e => setConfig(c => ({ ...c, maxDailyHours: parseFloat(e.target.value) }))}
+            />
           </div>
         </div>
       </section>
