@@ -133,9 +133,12 @@ public class DeliveryCalculator : IDeliveryCalculator
         {
             current = SkipWeekend(current, config);
 
+            var dayWorkFrom = current.Date.Add(config.WorkFrom.ToTimeSpan());
             var dayEnd = current.Date.Add(config.WorkUntil.ToTimeSpan());
             var availableToday = (dayEnd - current).TotalHours;
-            var effectiveToday = Math.Min(availableToday, config.MaxDailyHours);
+            var hoursWorkedToday = (current - dayWorkFrom).TotalHours;
+            var remainingDailyCapacity = Math.Max(0, config.MaxDailyHours - hoursWorkedToday);
+            var effectiveToday = Math.Min(availableToday, remainingDailyCapacity);
 
             if (effectiveToday <= 0)
             {
