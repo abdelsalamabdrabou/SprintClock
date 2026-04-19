@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/backend/">
+    <Project Path="backend/SprintClock.API/SprintClock.API.csproj" />
+    <Project Path="backend/SprintClock.Application/SprintClock.Application.csproj" />
+    <Project Path="backend/SprintClock.Domain/SprintClock.Domain.csproj" />
+    <Project Path="backend/SprintClock.Infrastructure/SprintClock.Infrastructure.csproj" />
+  </Folder>
+</Solution>
