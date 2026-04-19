@@ -44,6 +44,29 @@ export interface CalculateResponse {
   totalFrontendHours: number;
   totalBackendHours: number;
   totalTestHours: number;
+  sprintId: string;
+}
+
+export interface SprintSummary {
+  id: string;
+  createdAt: string;
+  featureDelivery: string;
+  totalStories: number;
+}
+
+export interface UserStorySprintItem {
+  sprintId: string;
+  sprintCreatedAt: string;
+  storyTitle: string;
+  hours: number;
+}
+
+export interface UserStats {
+  name: string;
+  team: string;
+  totalHours: number;
+  storyCount: number;
+  stories: UserStorySprintItem[];
 }
 
 export interface TeamMembers {
