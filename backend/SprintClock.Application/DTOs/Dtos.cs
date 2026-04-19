@@ -49,5 +49,28 @@ public record CalculateResponse(
     int TotalStories,
     double TotalFrontendHours,
     double TotalBackendHours,
-    double TotalTestHours
+    double TotalTestHours,
+    Guid SprintId = default
+);
+
+public record SprintSummaryDto(
+    Guid Id,
+    DateTime CreatedAt,
+    DateTime FeatureDelivery,
+    int TotalStories
+);
+
+public record UserStorySprintDto(
+    Guid SprintId,
+    DateTime SprintCreatedAt,
+    string StoryTitle,
+    double Hours
+);
+
+public record UserStatsDto(
+    string Name,
+    string Team,
+    double TotalHours,
+    int StoryCount,
+    List<UserStorySprintDto> Stories
 );

@@ -1,4 +1,6 @@
+import { useState } from 'react';
 import type { CalculateResponse } from '../types';
+import UserStatsPanel from '../components/UserStatsPanel';
 
 interface Props {
   response: CalculateResponse;
@@ -25,16 +27,19 @@ export default function StatisticsPage({ response, onBack, onReset }: Props) {
     totalFrontendHours, totalBackendHours, totalTestHours } = response;
 
   const teams = ['Frontend', 'Backend', 'Test'];
+  const [selectedUser, setSelectedUser] = useState<string | null>(null);
 
   return (
     <div className="page">
+      {selectedUser && (
+        <UserStatsPanel name={selectedUser} onClose={() => setSelectedUser(null)} />
+      )}
       <div className="page-header">
         <button className="btn-secondary" onClick={onBack}>← Back</button>
         <h1>📊 Statistics</h1>
         <button className="btn-secondary" onClick={onReset}>🔄 New Sprint</button>
       </div>
 
-      {/* Feature delivery banner */}
       <section className="feature-banner">
         <div>
           <div className="banner-label">🏁 Feature Delivery</div>
@@ -48,7 +53,6 @@ export default function StatisticsPage({ response, onBack, onReset }: Props) {
         </div>
       </section>
 
-      {/* Per-story delivery table */}
       <section className="card">
         <h2>Delivery per Story</h2>
         <div className="table-wrapper">
@@ -79,7 +83,6 @@ export default function StatisticsPage({ response, onBack, onReset }: Props) {
         </div>
       </section>
 
-      {/* Workload per user */}
       {teams.map(team => {
         const members = workloads.filter(w => w.team === team);
         if (members.length === 0) return null;
@@ -98,7 +101,11 @@ export default function StatisticsPage({ response, onBack, onReset }: Props) {
                 <tbody>
                   {members.map(m => (
                     <tr key={m.name}>
-                      <td>{m.name}</td>
+                      <td>
+                        <button className="member-btn" onClick={() => setSelectedUser(m.name)}>
+                          {m.name}
+                        </button>
+                      </td>
                       <td>{m.totalHours}h</td>
                       <td>{m.storyCount}</td>
                     </tr>
