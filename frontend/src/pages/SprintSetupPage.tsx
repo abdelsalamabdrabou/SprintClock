@@ -72,10 +72,10 @@ export default function SprintSetupPage({ onNext }: Props) {
       errs.push(`Max Daily Hours (${config.maxDailyHours}) cannot exceed workday window (${windowHours}h).`);
     if (config.maxDailyHours <= 0) errs.push('Max Daily Hours must be greater than 0.');
 
-    (['frontend', 'backend', 'test'] as const).forEach(t => {
-      const valid = teams[t].filter(n => n.trim().length > 0);
-      if (valid.length === 0) errs.push(`${t.charAt(0).toUpperCase() + t.slice(1)} team needs at least 1 member.`);
-    });
+    const totalMembers = (['frontend', 'backend', 'test'] as const)
+      .flatMap(t => teams[t])
+      .filter(n => n.trim().length > 0).length;
+    if (totalMembers === 0) errs.push('At least one team must have at least 1 member.');
 
     return errs;
   };

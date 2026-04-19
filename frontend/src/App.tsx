@@ -38,6 +38,7 @@ function App() {
 
   const handleViewSprintFromHistory = (res: CalculateResponse) => {
     setResults(res);
+    if (res.config) setConfig(res.config);
     goTo('statistics');
   };
 
@@ -88,9 +89,10 @@ function App() {
             onResults={handleResults}
           />
         )}
-        {step === 'statistics' && results && (
+        {step === 'statistics' && results && (config || results.config) && (
           <StatisticsPage
             response={results}
+            config={(results.config ?? config)!}
             onBack={handleStatisticsBack}
             onReset={handleReset}
           />

@@ -18,20 +18,36 @@ public class GetUserStatsUseCase
         var snapshots = await _repository.GetAllAsync();
 
         var byTeam = new Dictionary<string, List<UserStorySprintDto>>();
+        var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
 
         foreach (var snapshot in snapshots)
         {
-            var request = JsonSerializer.Deserialize<CalculateRequest>(snapshot.RequestJson);
-            if (request is null) continue;
+            var request = JsonSerializer.Deserialize<CalculateRequest>(snapshot.RequestJson, options);
+            if (request?.Stories is null) continue;
+
+            var response = JsonSerializer.Deserialize<CalculateResponse>(snapshot.ResponseJson, options);
+
+            // Build a lookup: storyTitle -> DeliveryResult
+            var deliveryMap = response?.Results?
+                .ToDictionary(r => r.StoryTitle, r => r, StringComparer.OrdinalIgnoreCase)
+                ?? new Dictionary<string, DeliveryResultDto>();
 
             foreach (var story in request.Stories)
             {
-                Collect(byTeam, "Frontend", name, story.FrontendAssignee, story.FrontendHours,
-                    snapshot.Id, snapshot.CreatedAt, story.Title);
-                Collect(byTeam, "Backend", name, story.BackendAssignee, story.BackendHours,
-                    snapshot.Id, snapshot.CreatedAt, story.Title);
-                Collect(byTeam, "Test", name, story.TestAssignee, story.TestHours,
-                    snapshot.Id, snapshot.CreatedAt, story.Title);
+                deliveryMap.TryGetValue(story.Title, out var delivery);
+
+                foreach (var a in story.Frontend ?? [])
+                    Collect(byTeam, "Frontend", name, a.Name, a.Hours,
+                        snapshot.Id, snapshot.CreatedAt, story.Title,
+                        Lookup(delivery?.FrontendMemberDeliveries, a.Name));
+                foreach (var a in story.Backend ?? [])
+                    Collect(byTeam, "Backend", name, a.Name, a.Hours,
+                        snapshot.Id, snapshot.CreatedAt, story.Title,
+                        Lookup(delivery?.BackendMemberDeliveries, a.Name));
+                foreach (var a in story.Test ?? [])
+                    Collect(byTeam, "Test", name, a.Name, a.Hours,
+                        snapshot.Id, snapshot.CreatedAt, story.Title,
+                        Lookup(delivery?.TestMemberDeliveries, a.Name));
             }
         }
 
@@ -46,6 +62,12 @@ public class GetUserStatsUseCase
             .ToList();
     }
 
+    private static DateTime? Lookup(Dictionary<string, DateTime>? dict, string name)
+    {
+        if (dict is null) return null;
+        return dict.TryGetValue(name, out var dt) ? dt : null;
+    }
+
     private static void Collect(
         Dictionary<string, List<UserStorySprintDto>> byTeam,
         string team,
@@ -54,7 +76,8 @@ public class GetUserStatsUseCase
         double hours,
         Guid sprintId,
         DateTime createdAt,
-        string storyTitle)
+        string storyTitle,
+        DateTime? deliveryDateTime)
     {
         if (!assignee.Equals(targetName, StringComparison.OrdinalIgnoreCase) || hours <= 0) return;
 
@@ -64,6 +87,6 @@ public class GetUserStatsUseCase
             byTeam[team] = list;
         }
 
-        list.Add(new UserStorySprintDto(sprintId, createdAt, storyTitle, hours));
+        list.Add(new UserStorySprintDto(sprintId, createdAt, storyTitle, hours, deliveryDateTime));
     }
 }

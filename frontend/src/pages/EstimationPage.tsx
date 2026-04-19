@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { SprintConfigDto, TeamMembers, StoryRow, CalculateResponse } from '../types';
 import { calculateDeliveries } from '../services/estimationApi';
+import TeamAssigneeInput from '../components/TeamAssigneeInput';
 
 interface Props {
   config: SprintConfigDto;
@@ -13,12 +14,9 @@ function newRow(): StoryRow {
   return {
     id: crypto.randomUUID(),
     title: '',
-    frontendAssignee: '',
-    backendAssignee: '',
-    testAssignee: '',
-    frontendHours: 0,
-    backendHours: 0,
-    testHours: 0,
+    frontend: [],
+    backend: [],
+    test: [],
   };
 }
 
@@ -39,12 +37,16 @@ export default function EstimationPage({ config, teams, onBack, onResults }: Pro
   const validate = (): string | null => {
     for (const s of stories) {
       if (!s.title.trim()) return 'All stories must have a title.';
-      if (!s.frontendAssignee || !s.backendAssignee || !s.testAssignee)
-        return `Story "${s.title || '(untitled)'}" needs assignees for all three teams.`;
-      if (s.frontendHours < 0 || s.backendHours < 0 || s.testHours < 0)
-        return 'Hours cannot be negative.';
-      if (s.frontendHours === 0 && s.backendHours === 0 && s.testHours === 0)
-        return `Story "${s.title}" must have at least one team with hours > 0.`;
+      const allAssignees = [...s.frontend, ...s.backend, ...s.test];
+      if (allAssignees.length === 0)
+        return `Story "${s.title || '(untitled)'}" has no assignees.`;
+      if (!allAssignees.some(a => a.hours > 0))
+        return `Story "${s.title || '(untitled)'}" must have at least one assignee with hours > 0.`;
+      const zeroHour = allAssignees.find(a => a.hours <= 0);
+      if (zeroHour)
+        return `Story "${s.title}": assignee "${zeroHour.name}" has 0 hours — set hours or remove them.`;
+      if (allAssignees.some(a => a.hours < 0))
+        return `Story "${s.title}": hours cannot be negative.`;
     }
     const titles = stories.map(s => s.title.trim().toLowerCase());
     if (new Set(titles).size !== titles.length) return 'Story titles must be unique.';
@@ -61,12 +63,9 @@ export default function EstimationPage({ config, teams, onBack, onResults }: Pro
         config,
         stories: stories.map(s => ({
           title: s.title,
-          frontendAssignee: s.frontendAssignee,
-          backendAssignee: s.backendAssignee,
-          testAssignee: s.testAssignee,
-          frontendHours: s.frontendHours,
-          backendHours: s.backendHours,
-          testHours: s.testHours,
+          frontend: s.frontend,
+          backend: s.backend,
+          test: s.test,
         })),
       });
       onResults(response);
@@ -101,12 +100,9 @@ export default function EstimationPage({ config, teams, onBack, onResults }: Pro
             <thead>
               <tr>
                 <th>Story Title</th>
-                <th>FE Assignee</th>
-                <th>FE Hours</th>
-                <th>BE Assignee</th>
-                <th>BE Hours</th>
-                <th>Test Assignee</th>
-                <th>Test Hours</th>
+                <th>Frontend</th>
+                <th>Backend</th>
+                <th>Test</th>
                 <th></th>
               </tr>
             </thead>
@@ -121,37 +117,25 @@ export default function EstimationPage({ config, teams, onBack, onResults }: Pro
                     />
                   </td>
                   <td>
-                    <select value={s.frontendAssignee}
-                      onChange={e => updateRow(s.id, 'frontendAssignee', e.target.value)}>
-                      <option value="">-- select --</option>
-                      {teams.frontend.map(m => <option key={m} value={m}>{m}</option>)}
-                    </select>
+                    <TeamAssigneeInput
+                      members={teams.frontend}
+                      value={s.frontend}
+                      onChange={v => updateRow(s.id, 'frontend', v)}
+                    />
                   </td>
                   <td>
-                    <input type="number" min={0} step={0.5} value={s.frontendHours}
-                      onChange={e => updateRow(s.id, 'frontendHours', parseFloat(e.target.value) || 0)} />
+                    <TeamAssigneeInput
+                      members={teams.backend}
+                      value={s.backend}
+                      onChange={v => updateRow(s.id, 'backend', v)}
+                    />
                   </td>
                   <td>
-                    <select value={s.backendAssignee}
-                      onChange={e => updateRow(s.id, 'backendAssignee', e.target.value)}>
-                      <option value="">-- select --</option>
-                      {teams.backend.map(m => <option key={m} value={m}>{m}</option>)}
-                    </select>
-                  </td>
-                  <td>
-                    <input type="number" min={0} step={0.5} value={s.backendHours}
-                      onChange={e => updateRow(s.id, 'backendHours', parseFloat(e.target.value) || 0)} />
-                  </td>
-                  <td>
-                    <select value={s.testAssignee}
-                      onChange={e => updateRow(s.id, 'testAssignee', e.target.value)}>
-                      <option value="">-- select --</option>
-                      {teams.test.map(m => <option key={m} value={m}>{m}</option>)}
-                    </select>
-                  </td>
-                  <td>
-                    <input type="number" min={0} step={0.5} value={s.testHours}
-                      onChange={e => updateRow(s.id, 'testHours', parseFloat(e.target.value) || 0)} />
+                    <TeamAssigneeInput
+                      members={teams.test}
+                      value={s.test}
+                      onChange={v => updateRow(s.id, 'test', v)}
+                    />
                   </td>
                   <td>
                     {stories.length > 1 && (

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { SprintSummary, CalculateResponse } from '../types';
-import { getSprints, getSprintById } from '../services/estimationApi';
+import { getSprints, getSprintById, deleteSprint } from '../services/estimationApi';
 
 interface Props {
   onViewSprint: (response: CalculateResponse) => void;
@@ -19,6 +19,7 @@ export default function HistoryPage({ onViewSprint, onBack }: Props) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [loadingId, setLoadingId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
     getSprints()
@@ -36,6 +37,18 @@ export default function HistoryPage({ onViewSprint, onBack }: Props) {
       setError(e instanceof Error ? e.message : 'Failed to load sprint');
     } finally {
       setLoadingId(null);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    setDeletingId(id);
+    try {
+      await deleteSprint(id);
+      setSprints(prev => prev.filter(s => s.id !== id));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Failed to delete sprint');
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -79,9 +92,17 @@ export default function HistoryPage({ onViewSprint, onBack }: Props) {
                       <button
                         className="btn-secondary"
                         onClick={() => handleView(s.id)}
-                        disabled={loadingId === s.id}
+                        disabled={loadingId === s.id || deletingId === s.id}
                       >
                         {loadingId === s.id ? '…' : 'View →'}
+                      </button>
+                      <button
+                        className="btn-danger btn-sm"
+                        onClick={() => handleDelete(s.id)}
+                        disabled={deletingId === s.id || loadingId === s.id}
+                        style={{ marginLeft: '0.5rem' }}
+                      >
+                        {deletingId === s.id ? '…' : '🗑'}
                       </button>
                     </td>
                   </tr>

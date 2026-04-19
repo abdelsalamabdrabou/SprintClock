@@ -27,42 +27,66 @@ public class DeliveryCalculator : IDeliveryCalculator
             DateTime? feDelivery = null;
             DateTime? beDelivery = null;
             DateTime? testDelivery = null;
+            var feMemberDeliveries = new Dictionary<string, DateTime>(StringComparer.OrdinalIgnoreCase);
+            var beMemberDeliveries = new Dictionary<string, DateTime>(StringComparer.OrdinalIgnoreCase);
+            var testMemberDeliveries = new Dictionary<string, DateTime>(StringComparer.OrdinalIgnoreCase);
 
-            // Frontend
-            if (story.FrontendHours > 0)
+            // Frontend — each assignee works their own hours; story delivery = last to finish
+            if (story.Frontend.Count > 0)
             {
-                var start = GetQueueStart(feQueue, story.FrontendAssignee, config);
-                feDelivery = AddWorkHours(start, story.FrontendHours, config);
-                feQueue[story.FrontendAssignee] = feDelivery.Value;
+                DateTime latest = DateTime.MinValue;
+                foreach (var a in story.Frontend)
+                {
+                    if (a.Hours <= 0) continue;
+                    var start = GetQueueStart(feQueue, a.Name, config);
+                    var delivery = AddWorkHours(start, a.Hours, config);
+                    feQueue[a.Name] = delivery;
+                    feMemberDeliveries[a.Name] = delivery;
+                    if (delivery > latest) latest = delivery;
+                }
+                if (latest > DateTime.MinValue) feDelivery = latest;
             }
 
-            // Backend
-            if (story.BackendHours > 0)
+            // Backend — each assignee works their own hours; story delivery = last to finish
+            if (story.Backend.Count > 0)
             {
-                var start = GetQueueStart(beQueue, story.BackendAssignee, config);
-                beDelivery = AddWorkHours(start, story.BackendHours, config);
-                beQueue[story.BackendAssignee] = beDelivery.Value;
+                DateTime latest = DateTime.MinValue;
+                foreach (var a in story.Backend)
+                {
+                    if (a.Hours <= 0) continue;
+                    var start = GetQueueStart(beQueue, a.Name, config);
+                    var delivery = AddWorkHours(start, a.Hours, config);
+                    beQueue[a.Name] = delivery;
+                    beMemberDeliveries[a.Name] = delivery;
+                    if (delivery > latest) latest = delivery;
+                }
+                if (latest > DateTime.MinValue) beDelivery = latest;
             }
 
-            // Test — starts after max(fe, be)
-            if (story.TestHours > 0)
+            // Test — starts after max(fe, be); each assignee works their own hours
+            if (story.Test.Count > 0)
             {
                 var dependencyEnd = MaxNullable(feDelivery, beDelivery);
-                var queueStart = GetQueueStart(testQueue, story.TestAssignee, config);
-                var testStart = dependencyEnd.HasValue
-                    ? Later(dependencyEnd.Value, queueStart)
-                    : queueStart;
-
-                // If testStart falls outside workday window, roll to next working day start
-                testStart = AdjustToWorkday(testStart, config);
-
-                testDelivery = AddWorkHours(testStart, story.TestHours, config);
-                testQueue[story.TestAssignee] = testDelivery.Value;
+                DateTime latest = DateTime.MinValue;
+                foreach (var a in story.Test)
+                {
+                    if (a.Hours <= 0) continue;
+                    var start = GetQueueStart(testQueue, a.Name, config);
+                    if (dependencyEnd.HasValue && dependencyEnd.Value > start)
+                        start = AdjustToWorkday(dependencyEnd.Value, config);
+                    var delivery = AddWorkHours(start, a.Hours, config);
+                    testQueue[a.Name] = delivery;
+                    testMemberDeliveries[a.Name] = delivery;
+                    if (delivery > latest) latest = delivery;
+                }
+                if (latest > DateTime.MinValue) testDelivery = latest;
             }
 
-            var finalDelivery = new[] { feDelivery, beDelivery, testDelivery }
-                .Where(d => d.HasValue)
-                .Max(d => d!.Value);
+            var deliveries = new[] { feDelivery, beDelivery, testDelivery }
+                .Where(d => d.HasValue).ToList();
+            var finalDelivery = deliveries.Count > 0
+                ? deliveries.Max(d => d!.Value)
+                : config.StartDateTime;
 
             var criticalPath = DetermineCriticalPath(feDelivery, beDelivery, testDelivery, finalDelivery);
 
@@ -72,7 +96,10 @@ public class DeliveryCalculator : IDeliveryCalculator
                 beDelivery,
                 testDelivery,
                 finalDelivery,
-                criticalPath));
+                criticalPath,
+                feMemberDeliveries,
+                beMemberDeliveries,
+                testMemberDeliveries));
         }
 
         return results;

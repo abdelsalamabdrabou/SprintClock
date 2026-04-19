@@ -8,6 +8,9 @@ public class DeliveryResult
     public DateTime? TestDelivery { get; init; }
     public DateTime FinalDelivery { get; init; }
     public string CriticalPathTeam { get; init; }
+    public IReadOnlyDictionary<string, DateTime> FrontendMemberDeliveries { get; init; }
+    public IReadOnlyDictionary<string, DateTime> BackendMemberDeliveries { get; init; }
+    public IReadOnlyDictionary<string, DateTime> TestMemberDeliveries { get; init; }
 
     public DeliveryResult(
         string storyTitle,
@@ -15,7 +18,10 @@ public class DeliveryResult
         DateTime? backendDelivery,
         DateTime? testDelivery,
         DateTime finalDelivery,
-        string criticalPathTeam)
+        string criticalPathTeam,
+        IReadOnlyDictionary<string, DateTime> frontendMemberDeliveries,
+        IReadOnlyDictionary<string, DateTime> backendMemberDeliveries,
+        IReadOnlyDictionary<string, DateTime> testMemberDeliveries)
     {
         StoryTitle = storyTitle;
         FrontendDelivery = frontendDelivery;
@@ -23,5 +29,8 @@ public class DeliveryResult
         TestDelivery = testDelivery;
         FinalDelivery = finalDelivery;
         CriticalPathTeam = criticalPathTeam;
+        FrontendMemberDeliveries = frontendMemberDeliveries;
+        BackendMemberDeliveries = backendMemberDeliveries;
+        TestMemberDeliveries = testMemberDeliveries;
     }
 }

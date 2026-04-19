@@ -312,6 +312,38 @@ td input, td select {
 }
 
 /* ====== Statistics ====== */
+/* ====== Sprint config card ====== */
+.config-grid {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.config-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  background: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  padding: 0.65rem 1rem;
+  min-width: 140px;
+}
+
+.config-label {
+  font-size: 0.75rem;
+  color: #64748b;
+  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.config-value {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #e2e8f0;
+}
+
 .feature-banner {
   background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%);
   border: 1px solid #1d4ed8;
@@ -811,4 +843,188 @@ td input, td select {
     right: 0;
     border-right-color: var(--border);
   }
+}
+
+/* ====== Multi-assignee select ====== */
+.multi-select {
+  position: relative;
+  width: 100%;
+  min-width: 110px;
+}
+
+.multi-select-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem;
+  background: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  color: #64748b;
+  padding: 0.35rem 0.5rem;
+  font-size: 0.85rem;
+  width: 100%;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+}
+
+.multi-select-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  text-align: left;
+  color: #64748b;
+}
+
+.multi-select-trigger.has-value .multi-select-label { color: #e2e8f0; }
+.multi-select-trigger:hover, .multi-select-trigger:focus { border-color: #38bdf8; outline: none; }
+
+.multi-select-arrow {
+  font-size: 0.6rem;
+  flex-shrink: 0;
+  color: #64748b;
+}
+
+.multi-select-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 9999;
+  background: #1e293b;
+  border: 1px solid #475569;
+  border-radius: 8px;
+  padding: 0.35rem 0;
+  min-width: 160px;
+  max-width: 260px;
+  max-height: 220px;
+  overflow-y: auto;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+.multi-select-option {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.88rem;
+  color: #e2e8f0;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s;
+  user-select: none;
+}
+
+.multi-select-option:hover { background: #334155; }
+.multi-select-option.is-checked { color: #38bdf8; }
+
+.multi-select-all {
+  font-weight: 600;
+  color: #94a3b8;
+}
+.multi-select-all:hover { background: #334155; }
+.multi-select-all.is-checked { color: #38bdf8; }
+
+.multi-select-checkbox {
+  font-size: 1rem;
+  line-height: 1;
+  flex-shrink: 0;
+  width: 16px;
+  text-align: center;
+}
+
+.multi-select-divider {
+  height: 1px;
+  background: #334155;
+  margin: 0.25rem 0;
+}
+
+.no-members {
+  font-size: 0.82rem;
+  color: #475569;
+  font-style: italic;
+}
+
+/* Allow dropdowns to overflow the table */
+.table-wrapper {
+  overflow: visible !important;
+}
+
+table {
+  overflow: visible !important;
+}
+
+/* ====== Team assignee input ====== */
+.team-assignee-input {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-width: 150px;
+}
+
+.assignee-row {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 6px;
+  padding: 0.2rem 0.4rem;
+}
+
+.assignee-name {
+  flex: 1;
+  font-size: 0.82rem;
+  color: #e2e8f0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.assignee-hours {
+  width: 52px !important;
+  min-width: 0 !important;
+  padding: 0.15rem 0.3rem !important;
+  font-size: 0.82rem !important;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.assignee-unit {
+  font-size: 0.78rem;
+  color: #64748b;
+  flex-shrink: 0;
+}
+
+.btn-remove-assignee {
+  background: transparent;
+  border: none;
+  color: #475569;
+  cursor: pointer;
+  font-size: 0.72rem;
+  padding: 0 0.1rem;
+  line-height: 1;
+  flex-shrink: 0;
+  transition: color 0.15s;
+}
+
+.btn-remove-assignee:hover { color: #f87171; }
+
+.assignee-add-select {
+  font-size: 0.82rem !important;
+  padding: 0.2rem 0.4rem !important;
+  color: #64748b !important;
+  border-style: dashed !important;
+  cursor: pointer;
+}
+
+.delivery-date {
+  color: #38bdf8;
+  font-size: 0.82rem;
+  white-space: nowrap;
 }

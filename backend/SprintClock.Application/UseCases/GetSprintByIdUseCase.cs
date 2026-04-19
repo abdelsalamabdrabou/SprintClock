@@ -18,9 +18,12 @@ public class GetSprintByIdUseCase
         var snapshot = await _repository.GetByIdAsync(id);
         if (snapshot is null) return null;
 
-        var response = JsonSerializer.Deserialize<CalculateResponse>(snapshot.ResponseJson);
+        var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+        var response = JsonSerializer.Deserialize<CalculateResponse>(snapshot.ResponseJson, options);
         if (response is null) return null;
 
-        return response with { SprintId = snapshot.Id };
+        var request = JsonSerializer.Deserialize<CalculateRequest>(snapshot.RequestJson, options);
+
+        return response with { SprintId = snapshot.Id, Config = request?.Config };
     }
 }

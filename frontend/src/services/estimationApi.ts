@@ -29,6 +29,11 @@ export async function getSprintById(id: string): Promise<CalculateResponse> {
   return res.json();
 }
 
+export async function deleteSprint(id: string): Promise<void> {
+  const res = await fetch(`${API_BASE}/sprints/${id}`, { method: 'DELETE' });
+  if (!res.ok && res.status !== 404) throw new Error('Failed to delete sprint');
+}
+
 export async function getUserStats(name: string): Promise<UserStats[]> {
   const res = await fetch(`${API_BASE}/users/${encodeURIComponent(name)}/stats`);
   if (!res.ok) throw new Error('Failed to load user stats');

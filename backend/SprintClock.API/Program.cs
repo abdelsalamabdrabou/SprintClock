@@ -73,6 +73,13 @@ app.MapGet("/api/sprints/{id:guid}", async (Guid id, GetSprintByIdUseCase useCas
 })
 .WithName("GetSprintById");
 
+app.MapDelete("/api/sprints/{id:guid}", async (Guid id, ISprintRepository repo) =>
+{
+    var deleted = await repo.DeleteAsync(id);
+    return deleted ? Results.NoContent() : Results.NotFound();
+})
+.WithName("DeleteSprint");
+
 app.MapGet("/api/users/{name}/stats", async (string name, GetUserStatsUseCase useCase) =>
 {
     var stats = await useCase.ExecuteAsync(name);

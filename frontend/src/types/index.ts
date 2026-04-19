@@ -5,14 +5,16 @@ export interface SprintConfigDto {
   workUntil: string; // "HH:mm"
 }
 
+export interface AssigneeHours {
+  name: string;
+  hours: number;
+}
+
 export interface UserStoryDto {
   title: string;
-  frontendAssignee: string;
-  backendAssignee: string;
-  testAssignee: string;
-  frontendHours: number;
-  backendHours: number;
-  testHours: number;
+  frontend: AssigneeHours[];
+  backend: AssigneeHours[];
+  test: AssigneeHours[];
 }
 
 export interface CalculateRequest {
@@ -45,6 +47,7 @@ export interface CalculateResponse {
   totalBackendHours: number;
   totalTestHours: number;
   sprintId: string;
+  config?: SprintConfigDto;
 }
 
 export interface SprintSummary {
@@ -59,6 +62,7 @@ export interface UserStorySprintItem {
   sprintCreatedAt: string;
   storyTitle: string;
   hours: number;
+  deliveryDateTime: string | null;
 }
 
 export interface UserStats {
@@ -78,10 +82,7 @@ export interface TeamMembers {
 export interface StoryRow {
   id: string;
   title: string;
-  frontendAssignee: string;
-  backendAssignee: string;
-  testAssignee: string;
-  frontendHours: number;
-  backendHours: number;
-  testHours: number;
+  frontend: AssigneeHours[];
+  backend: AssigneeHours[];
+  test: AssigneeHours[];
 }

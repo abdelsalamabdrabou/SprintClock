@@ -31,4 +31,13 @@ public class SprintRepository : ISprintRepository
     {
         return await _db.SprintSnapshots.FindAsync(id);
     }
+
+    public async Task<bool> DeleteAsync(Guid id)
+    {
+        var snapshot = await _db.SprintSnapshots.FindAsync(id);
+        if (snapshot is null) return false;
+        _db.SprintSnapshots.Remove(snapshot);
+        await _db.SaveChangesAsync();
+        return true;
+    }
 }

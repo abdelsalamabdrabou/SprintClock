@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import type { CalculateResponse } from '../types';
+import type { CalculateResponse, SprintConfigDto } from '../types';
 import UserStatsPanel from '../components/UserStatsPanel';
 
 interface Props {
   response: CalculateResponse;
+  config: SprintConfigDto;
   onBack: () => void;
   onReset: () => void;
 }
@@ -22,7 +23,7 @@ const teamColors: Record<string, string> = {
   Test: 'badge-test',
 };
 
-export default function StatisticsPage({ response, onBack, onReset }: Props) {
+export default function StatisticsPage({ response, config, onBack, onReset }: Props) {
   const { results, workloads, featureDelivery, totalStories,
     totalFrontendHours, totalBackendHours, totalTestHours } = response;
 
@@ -39,6 +40,24 @@ export default function StatisticsPage({ response, onBack, onReset }: Props) {
         <h1>📊 Statistics</h1>
         <button className="btn-secondary" onClick={onReset}>🔄 New Sprint</button>
       </div>
+
+      <section className="card config-card">
+        <h2>Sprint Configuration</h2>
+        <div className="config-grid">
+          <div className="config-item">
+            <span className="config-label">Start Date</span>
+            <span className="config-value">{fmt(config.startDateTime)}</span>
+          </div>
+          <div className="config-item">
+            <span className="config-label">Work Hours</span>
+            <span className="config-value">{config.workFrom} – {config.workUntil}</span>
+          </div>
+          <div className="config-item">
+            <span className="config-label">Max Daily Hours</span>
+            <span className="config-value">{config.maxDailyHours}h</span>
+          </div>
+        </div>
+      </section>
 
       <section className="feature-banner">
         <div>

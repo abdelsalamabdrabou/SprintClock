@@ -61,6 +61,7 @@ export default function UserStatsPanel({ name, onClose }: Props) {
                     <th>Sprint Date</th>
                     <th>Story</th>
                     <th>Hours</th>
+                    <th>Delivery</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -69,6 +70,9 @@ export default function UserStatsPanel({ name, onClose }: Props) {
                       <td className="text-muted">{fmt(item.sprintCreatedAt)}</td>
                       <td>{item.storyTitle}</td>
                       <td>{item.hours}h</td>
+                      <td className={item.deliveryDateTime ? 'delivery-date' : 'text-muted'}>
+                        {item.deliveryDateTime ? fmt(item.deliveryDateTime) : '—'}
+                      </td>
                     </tr>
                   ))}
                 </tbody>

@@ -13,12 +13,9 @@ public record TeamMemberDto(string Name, string Team);
 
 public record UserStoryDto(
     string Title,
-    string FrontendAssignee,
-    string BackendAssignee,
-    string TestAssignee,
-    double FrontendHours,
-    double BackendHours,
-    double TestHours
+    List<AssigneeHours> Frontend,
+    List<AssigneeHours> Backend,
+    List<AssigneeHours> Test
 );
 
 public record CalculateRequest(
@@ -32,7 +29,10 @@ public record DeliveryResultDto(
     DateTime? BackendDelivery,
     DateTime? TestDelivery,
     DateTime FinalDelivery,
-    string CriticalPathTeam
+    string CriticalPathTeam,
+    Dictionary<string, DateTime> FrontendMemberDeliveries,
+    Dictionary<string, DateTime> BackendMemberDeliveries,
+    Dictionary<string, DateTime> TestMemberDeliveries
 );
 
 public record UserWorkloadDto(
@@ -50,7 +50,8 @@ public record CalculateResponse(
     double TotalFrontendHours,
     double TotalBackendHours,
     double TotalTestHours,
-    Guid SprintId = default
+    Guid SprintId = default,
+    SprintConfigDto? Config = null
 );
 
 public record SprintSummaryDto(
@@ -64,7 +65,8 @@ public record UserStorySprintDto(
     Guid SprintId,
     DateTime SprintCreatedAt,
     string StoryTitle,
-    double Hours
+    double Hours,
+    DateTime? DeliveryDateTime = null
 );
 
 public record UserStatsDto(

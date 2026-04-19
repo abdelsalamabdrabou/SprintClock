@@ -16,7 +16,11 @@ public class GetSprintsUseCase
     {
         var snapshots = await _repository.GetAllAsync();
         return snapshots
-            .Select(s => new SprintSummaryDto(s.Id, s.CreatedAt, s.FeatureDelivery, s.TotalStories))
+            .Select(s => new SprintSummaryDto(
+                s.Id,
+                DateTime.SpecifyKind(s.CreatedAt, DateTimeKind.Utc),
+                s.FeatureDelivery,
+                s.TotalStories))
             .ToList();
     }
 }

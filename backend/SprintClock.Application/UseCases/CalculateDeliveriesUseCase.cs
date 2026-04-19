@@ -26,20 +26,25 @@ public class CalculateDeliveriesUseCase
             r.BackendDelivery,
             r.TestDelivery,
             r.FinalDelivery,
-            r.CriticalPathTeam
+            r.CriticalPathTeam,
+            new Dictionary<string, DateTime>(r.FrontendMemberDeliveries),
+            new Dictionary<string, DateTime>(r.BackendMemberDeliveries),
+            new Dictionary<string, DateTime>(r.TestMemberDeliveries)
         )).ToList();
 
         var workloads = ComputeWorkloads(request.Stories);
-        var featureDelivery = results.Max(r => r.FinalDelivery);
+        var featureDelivery = results.Count > 0
+            ? results.Max(r => r.FinalDelivery)
+            : request.Config.StartDateTime;
 
         return new CalculateResponse(
             resultDtos,
             workloads,
             featureDelivery,
             stories.Count,
-            request.Stories.Sum(s => s.FrontendHours),
-            request.Stories.Sum(s => s.BackendHours),
-            request.Stories.Sum(s => s.TestHours)
+            request.Stories.Sum(s => s.Frontend.Sum(a => a.Hours)),
+            request.Stories.Sum(s => s.Backend.Sum(a => a.Hours)),
+            request.Stories.Sum(s => s.Test.Sum(a => a.Hours))
         );
     }
 
@@ -51,8 +56,7 @@ public class CalculateDeliveriesUseCase
     }
 
     private static UserStory MapStory(UserStoryDto dto) =>
-        new(dto.Title, dto.FrontendAssignee, dto.BackendAssignee, dto.TestAssignee,
-            dto.FrontendHours, dto.BackendHours, dto.TestHours);
+        new(dto.Title, dto.Frontend, dto.Backend, dto.Test);
 
     private static List<UserWorkloadDto> ComputeWorkloads(List<UserStoryDto> stories)
     {
@@ -60,9 +64,12 @@ public class CalculateDeliveriesUseCase
 
         foreach (var story in stories)
         {
-            Accumulate(workloads, story.FrontendAssignee, "Frontend", story.FrontendHours);
-            Accumulate(workloads, story.BackendAssignee, "Backend", story.BackendHours);
-            Accumulate(workloads, story.TestAssignee, "Test", story.TestHours);
+            foreach (var a in story.Frontend)
+                Accumulate(workloads, a.Name, "Frontend", a.Hours);
+            foreach (var a in story.Backend)
+                Accumulate(workloads, a.Name, "Backend", a.Hours);
+            foreach (var a in story.Test)
+                Accumulate(workloads, a.Name, "Test", a.Hours);
         }
 
         return workloads
