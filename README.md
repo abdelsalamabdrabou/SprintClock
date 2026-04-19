@@ -1,6 +1,6 @@
 # SprintClock
 
-**SprintClock** is a sprint delivery estimation tool that calculates per-story delivery dates and team workloads based on your sprint configuration and assigned hours.
+**SprintClock** is a sprint delivery estimation tool that calculates per-story delivery dates and team workloads based on your sprint configuration and assigned hours. It also persists every sprint so you can browse history and track each team member's cumulative contribution over time.
 
 ---
 
@@ -12,6 +12,9 @@
 - Identify the **critical path team** per story
 - View overall **feature delivery date**
 - Summarize **team member workloads** (total hours & story count)
+- **Sprint History** — every completed estimation is saved automatically; browse all past sprints and re-open any of them
+- **User Statistics** — click any team member's name to see their total hours, story count, and a per-sprint breakdown across all saved sprints
+- **12-hour time picker** with dark-theme calendar UI
 
 ---
 
@@ -25,23 +28,30 @@ SprintClock/
 │   ├── SprintClock.API             # Minimal API entry point + endpoints
 │   ├── SprintClock.Application     # Use cases, DTOs, interfaces
 │   ├── SprintClock.Domain          # Entities, enums (pure business logic)
-│   └── SprintClock.Infrastructure  # Services (DeliveryCalculator)
+│   └── SprintClock.Infrastructure  # EF Core + SQLite, DeliveryCalculator
 └── frontend/                       # React 19 + TypeScript + Vite
     └── src/
-        ├── pages/                  # SprintSetupPage, EstimationPage, StatisticsPage
+        ├── pages/                  # SprintSetupPage, EstimationPage, StatisticsPage, HistoryPage
+        ├── components/             # UserStatsPanel (modal)
         ├── services/               # API client (estimationApi.ts)
         └── types/                  # Shared TypeScript interfaces
 ```
+
+### Persistence
+
+Sprint snapshots are stored in a local **SQLite** database (`sprintclock.db`) via **EF Core 10**. The database is created automatically on first run — no migration step required.
 
 ---
 
 ## Tech Stack
 
-| Layer      | Technology                        |
-|------------|-----------------------------------|
-| Backend    | .NET 10, C#, Minimal API          |
-| Frontend   | React 19, TypeScript, Vite        |
-| API Style  | REST (JSON)                       |
+| Layer      | Technology                                   |
+|------------|----------------------------------------------|
+| Backend    | .NET 10, C#, Minimal API                     |
+| ORM        | Entity Framework Core 10 + SQLite            |
+| Frontend   | React 19, TypeScript, Vite                   |
+| UI / UX    | react-datepicker (12h, dark theme), CSS vars |
+| API Style  | REST (JSON)                                  |
 
 ---
 
@@ -62,6 +72,8 @@ dotnet run
 The API will be available at `http://localhost:5048`.  
 Swagger UI: `http://localhost:5048/swagger`
 
+The SQLite file `sprintclock.db` is created automatically in the `SprintClock.API` directory.
+
 ### Frontend
 
 ```bash
@@ -70,7 +82,7 @@ npm install
 npm run dev
 ```
 
-The app will be available at `http://localhost:5173`.
+The app will be available at `http://localhost:5173` (Vite may choose the next free port).
 
 ---
 
@@ -78,7 +90,7 @@ The app will be available at `http://localhost:5173`.
 
 ### `POST /api/calculate`
 
-Calculates delivery dates for all user stories.
+Calculates delivery dates for all user stories and **automatically saves** the sprint to the database.
 
 **Request Body**
 
@@ -104,10 +116,11 @@ Calculates delivery dates for all user stories.
 }
 ```
 
-**Response**
+**Response** — same as before plus `sprintId`:
 
 ```json
 {
+  "sprintId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
   "results": [
     {
       "storyTitle": "User Login",
@@ -128,6 +141,60 @@ Calculates delivery dates for all user stories.
   "totalTestHours": 4
 }
 ```
+
+---
+
+### `GET /api/sprints`
+
+Returns a list of all saved sprints, newest first.
+
+**Response**
+
+```json
+[
+  {
+    "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+    "createdAt": "2026-04-19T10:30:00",
+    "featureDelivery": "2026-04-20T13:00:00",
+    "totalStories": 3
+  }
+]
+```
+
+---
+
+### `GET /api/sprints/{id}`
+
+Returns the full result payload for a specific sprint (same shape as `POST /api/calculate` response).
+
+---
+
+### `GET /api/users/{name}/stats`
+
+Returns aggregated statistics for a team member across all saved sprints.
+
+**Response**
+
+```json
+[
+  {
+    "name": "Alice",
+    "team": "Frontend",
+    "totalHours": 42,
+    "storyCount": 7,
+    "stories": [
+      {
+        "sprintId": "3fa85f64-...",
+        "sprintCreatedAt": "2026-04-19T10:30:00",
+        "storyTitle": "User Login",
+        "hours": 8
+      }
+    ]
+  }
+]
+```
+
+---
 
 ### `GET /api/health`
 

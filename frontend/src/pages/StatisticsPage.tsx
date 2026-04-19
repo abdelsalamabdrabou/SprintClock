@@ -40,7 +40,6 @@ export default function StatisticsPage({ response, onBack, onReset }: Props) {
         <button className="btn-secondary" onClick={onReset}>🔄 New Sprint</button>
       </div>
 
-      {/* Feature delivery banner */}
       <section className="feature-banner">
         <div>
           <div className="banner-label">🏁 Feature Delivery</div>
@@ -54,7 +53,6 @@ export default function StatisticsPage({ response, onBack, onReset }: Props) {
         </div>
       </section>
 
-      {/* Per-story delivery table */}
       <section className="card">
         <h2>Delivery per Story</h2>
         <div className="table-wrapper">
@@ -85,7 +83,6 @@ export default function StatisticsPage({ response, onBack, onReset }: Props) {
         </div>
       </section>
 
-      {/* Workload per user */}
       {teams.map(team => {
         const members = workloads.filter(w => w.team === team);
         if (members.length === 0) return null;
